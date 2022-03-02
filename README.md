@@ -32,7 +32,7 @@ OpenDelta is a toolkit for parameter efficient methods (we dub it as *delta tuni
 ![How PLM changes using Delta-tuning](docs/source/imgs/demo.gif)
 
 ## Updates
-- 2022.02.16 support [regular expression](docs/source/notes/namebasedaddr#regexexpr) in named-based addressing. 
+- 2022.02.16 support [regular expression]() in named-based addressing. 
 
 ## Installation
 create a virtualenv (optional)

@@ -18,7 +18,7 @@ Fine-tuning the library models for sequence to sequence.
 # You can also adapt this script on your own sequence to sequence task. Pointers for this are left as comments.
 import functools
 import logging
-from opendelta.utils.delta_hub import create_hub_repo_name
+from opendelta.utils.delta_center import create_delta_center_args, create_repo_name
 import torch 
 import os
 os.environ['MKL_THREADING_LAYER'] = 'GNU' 
@@ -442,18 +442,13 @@ def main():
             trainer.log_metrics("test", metrics)
             trainer.save_metrics("test", metrics)
         results['test'] = metrics
-    
-    repo_name = create_hub_repo_name(root="DeltaHub",
-                         dataset=data_args.task_name, 
-                         delta_type = delta_args.delta_type,
-                         model_name_or_path= model_args.model_name_or_path)
-    results['repo_name'] = repo_name
-    if training_args.push_to_hub: # TODO add description here
-        delta_model.save_finetuned(push_to_hub=True, save_directory=repo_name, use_auth_token=True)
-        # trainer.push_to_hub(**kwargs)
-    else:
-        delta_model.save_finetuned(push_to_hub=False, save_directory=repo_name, use_auth_token=True)
 
+    # save to delta hub
+    center_args = create_delta_center_args(**vars(model_args), **vars(data_args), **vars(training_args), **vars(delta_args))
+    repo_name = create_repo_name(prefix="", center_args=center_args)
+    results['repo_name'] = repo_name
+    delta_model.save_finetuned(push_to_hf_hub=training_args.push_to_hub, push_to_delta_center=True, save_directory=repo_name, center_args=center_args)
+ 
     return results
 
 

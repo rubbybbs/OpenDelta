@@ -119,10 +119,6 @@ class DataTrainingArguments:
             "help": "Whether to ignore the tokens corresponding to padded labels in the loss computation or not."
         },
     )
-    task_adapters: Optional[List[str]] = field(
-        default=None,
-        metadata={"help": "Defines a dictionary from task adapters to the tasks."}
-    )
     task_embeddings: Optional[List[str]] = field(
         default=None,
         metadata={"help": "Defines a dictionary from tasks to the tasks embeddings."}

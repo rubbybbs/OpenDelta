@@ -19,6 +19,8 @@ from transformers.file_utils import (
 from transformers.utils.dummy_pt_objects import PreTrainedModel
 import hashlib
 
+from DeltaCenter import OssClient
+
 logger = logging.get_logger(__name__)
 
 class SaveLoadMixin(PushToHubMixin):
@@ -36,7 +38,9 @@ class SaveLoadMixin(PushToHubMixin):
         save_config: bool = True,
         state_dict: Optional[dict] = None,
         save_function: Callable = torch.save,
-        push_to_hub: bool = False,
+        push_to_hf_hub: bool = False,
+        push_to_delta_center: bool=True,
+        center_args: bool=None, 
         **kwargs,
     ):
         r"""
@@ -86,7 +90,7 @@ class SaveLoadMixin(PushToHubMixin):
             logger.error(f"Provided path ({save_directory}) should be a directory, not a file")
             return
 
-        if push_to_hub:
+        if push_to_hf_hub or push_to_delta_center:
             commit_message = kwargs.pop("commit_message", None)
             repo = self._create_or_get_repo(save_directory, **kwargs)
 
@@ -113,9 +117,16 @@ class SaveLoadMixin(PushToHubMixin):
 
         logger.info(f"Model weights saved in {output_model_file}")
 
-        if push_to_hub:
+        if push_to_hf_hub:
             url = self._push_to_hub(repo, commit_message=commit_message)
             logger.info(f"Model pushed to the hub in this commit: {url}")
+        if push_to_delta_center:
+            OssClient.create_yml(save_directory, center_args)
+            from IPython import embed; embed(header="push to deltacenter")
+            ## here comes the ERROR
+            OssClient.upload(save_directory)
+  
+
 
     @classmethod
     def from_finetuned(cls, 
