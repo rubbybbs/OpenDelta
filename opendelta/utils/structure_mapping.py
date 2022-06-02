@@ -88,6 +88,40 @@ roberta_mapping = {
 }
 
 
+roberta_mapping_with_pooler = {
+    "roberta.embeddings.word_embeddings": {"__name__":"embeddings"},
+    "roberta.embeddings.position_embeddings": {"__name__":""},
+    "roberta.embeddings.token_type_embeddings": {"__name__":""},
+    "roberta.embeddings.LayerNorm": {"__name__":""},
+    "roberta.encoder": {"__name__":"encoder",
+        "layer": {"__name__":"block",
+            "$": {"__name__":"$",
+                "attention": {"__name__":"attn",
+                    "self.query": {"__name__":"q"},
+                    "self.key": {"__name__":"k"},
+                    "self.value": {"__name__":"v"},
+                    "output.dense": {"__name__":"proj"},
+                    "output.LayerNorm": {"__name__":"layer_norm"},
+                },
+                "output": {"__name__":"ff",
+                            "dense": {"__name__":"w2"},
+                            "LayerNorm": {"__name__":"layer_norm"}
+                },
+                "intermediate.dense": {"__name__":"ff.w1"},
+            }
+        }
+    },
+    "roberta.pooler": {"__name__": "pooler",
+        "dense": {"__name__": ""}
+    },
+    "lm_head": {"__name__":"lm_head",
+        "dense": {"__name__":""},
+        "layer_norm": {"__name__":""},
+        "decoder": {"__name__":"proj"},
+    },
+}
+
+
 
 bert_mapping = {
     "bert.embeddings.word_embeddings": {"__name__":"embeddings"},
@@ -261,6 +295,16 @@ def mapping_for_SequenceClassification(mapping, type):
         raise NotImplementedError
     return mapping
 
+def mapping_for_MultipleChoice(mapping, type):
+    mapping = copy.deepcopy(mapping)
+    if type == "roberta":
+        mapping.pop("lm_head")
+        mapping['classifier'] = {"__name__": "classifier"}
+    else:
+        raise NotImplementedError
+    return mapping
+        
+
 def mapping_for_ConditionalGeneration(mapping, type):
     mapping = copy.deepcopy(mapping)
     if type == "t5":
@@ -294,6 +338,7 @@ class CommonStructureMap(object):
     """
     Mappings = _LazyLoading({
         "RobertaForSequenceClassification": """mapping_for_SequenceClassification(roberta_mapping, "roberta")""",
+        "RobertaForMultipleChoice": """mapping_for_MultipleChoice(roberta_mapping_with_pooler, "roberta")""",
         "RobertaForMaskedLM": "roberta_mapping",
         "BertForMaskedLM": "bert_mapping",
         "BertForSequenceClassification": """mapping_for_SequenceClassification(bert_mapping, "bert")""",

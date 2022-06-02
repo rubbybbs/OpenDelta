@@ -339,6 +339,10 @@ class DeltaBase(nn.Module, SaveLoadMixin):
                 module(pseudo_input, decoder_input_ids = pseudo_input)
             else:
                 module(pseudo_input)
+        except RuntimeError:
+            dummy_inputs = module.dummy_inputs
+            dummy_inputs["input_ids"] = dummy_inputs["input_ids"].unsqueeze(0)
+            module(**dummy_inputs)
 
     def trainable_parameters_names(self, module: Optional[nn.Module]=None):
         r"""[NODOC] A small sugar function to return all the trainable parameter's name in the (by default, backbone) model.
